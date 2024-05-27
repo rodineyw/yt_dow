@@ -24,4 +24,4 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 
 ## Autor
 
-- [Ródiney Wanderson](<https://github.com/rodineyw>]
+- [Ródiney Wanderson](<https://github.com/rodineyw>)
