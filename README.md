@@ -21,10 +21,7 @@ Este é um aplicativo simples desenvolvido com PyQt6 para baixar vídeos e áudi
 
 Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-## Contribuições
-
-Contribuições são sempre bem-vindas! Por favor, leia o arquivo CONTRIBUTING.md para mais detalhes sobre como enviar pull requests para o projeto.
 
 ## Autor
 
-- [Ródiney Wanderson](<https://github.com/rodineyw>]
+- [Ródiney Wanderson](<https://github.com/rodineyw>)
