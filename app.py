@@ -65,29 +65,37 @@ class YouTubeDownloader(QWidget):
 
     def download(self):
         video_stream = self.resolution_combo.currentData()
-        audio_stream = YouTube(
-            self.url_input.text(), on_progress_callback=self.progress_function
-        ).streams.get_audio_only()
-        video_path = QFileDialog.getSaveFileName(
+        audio_stream = YouTube(self.url_input.text()).streams.get_audio_only()
+        file_info = QFileDialog.getSaveFileName(
             self, "Salvar Vídeo", "", "MP4 Files (*.mp4)"
-        )[0]
-        audio_path = video_path.rsplit(".", 1)[0] + "_audio.mp4"
+        )
 
-        if video_path:
-            self.status_label.setText("Baixando vídeo...")
-            video_stream.download(filename=video_path)
-            self.status_label.setText("Baixando áudio...")
-            audio_stream.download(filename=audio_path)
-            self.status_label.setText("Combinando vídeo e áudio...")
-            self.combine_audio_video(video_path, audio_path)
-            self.status_label.setText("Download e combinação concluídos com sucesso!")
+        if file_info:
+            video_path = file_info[0]
+            audio_path = video_path.rsplit(".", 1)[0] + "_audio.mp4"
+            output_path = video_path.rsplit(".", 1)[0] + "_final.mp4"
+
+            try:
+                self.status_label.setText("Baixando vídeo...")
+                video_stream.download(filename=video_path)
+                self.status_label.setText("Baixando áudio...")
+                audio_stream.download(filename=audio_path)
+
+                self.status_label.setText("Combinando vídeo e áudio...")
+                self.combine_audio_video(video_path, audio_path, output_path)
+                self.status_label.setText(
+                    "Download e combinação concluídos com sucesso!"
+                )
+            except ImportError as e:
+                self.status_label.setText(
+                    "Falha durante o download/combinacao: " + str(e)
+                )
         else:
             self.status_label.setText("Download cancelado.")
 
-    def combine_audio_video(self, video_path, audio_path):
-        output_path = video_path.rsplit(".", 1)[0] + "_final.mp4"
+    def combine_audio_video(self, video_path, audio_path, output_path):
         command = f"ffmpeg -i {video_path} -i {audio_path} -c:v copy -c:a aac -strict experimental {output_path}"
-        subprocess.run(command, shell=True)
+        subprocess.run(command, check=True, shell=True)
         self.progress_bar.setValue(100)
 
     def progress_function(self, stream, chunk, bytes_remaining):
