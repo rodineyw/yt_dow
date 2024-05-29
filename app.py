@@ -20,7 +20,7 @@ class YouTubeDownloader(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle("Baixador de YouTube")
+        self.setWindowTitle("YouTube Download")
         self.setGeometry(100, 100, 400, 200)
         layout = QVBoxLayout()
 
@@ -55,22 +55,31 @@ class YouTubeDownloader(QWidget):
 
     def load_video_info(self):
         url = self.url_input.text()
-        yt = YouTube(url, on_progress_callback=self.progress_function)
+        self.yt = YouTube(url, on_progress_callback=self.progress_function)
         self.resolution_combo.clear()
-        video_streams = yt.streams.filter(only_video=True).order_by("resolution").desc()
+        video_streams = (
+            self.yt.streams.filter(only_video=True).order_by("resolution").desc()
+        )
         for stream in video_streams:
             self.resolution_combo.addItem(
                 f"{stream.resolution} - {stream.mime_type}", stream
             )
 
+    def sanitize_filename(self, title):
+        invalid_chars = r'/\\?%*:|"<>.'
+        for char in invalid_chars:
+            title = title.replace(char, "-")
+        return title
+
     def download(self):
         video_stream = self.resolution_combo.currentData()
-        audio_stream = YouTube(self.url_input.text()).streams.get_audio_only()
+        audio_stream = self.yt.streams.get_audio_only()
+        suggested_title = self.sanitize_filename(self.yt.title) + ".mp4"
         file_info = QFileDialog.getSaveFileName(
-            self, "Salvar Vídeo", "", "MP4 Files (*.mp4)"
+            self, "Salvar Vídeo", suggested_title, "MP4 Files (*.mp4)"
         )
 
-        if file_info:
+        if file_info[0]:
             video_path = file_info[0]
             audio_path = video_path.rsplit(".", 1)[0] + "_audio.mp4"
             output_path = video_path.rsplit(".", 1)[0] + "_final.mp4"
@@ -94,7 +103,19 @@ class YouTubeDownloader(QWidget):
             self.status_label.setText("Download cancelado.")
 
     def combine_audio_video(self, video_path, audio_path, output_path):
-        command = f"ffmpeg -i {video_path} -i {audio_path} -c:v copy -c:a aac -strict experimental {output_path}"
+        command = [
+            "ffmpeg",
+            "-i",
+            video_path,
+            "-i",
+            audio_path,
+            "-c:v",
+            "copy",
+            "-c:a",
+            "aac," "-strict",
+            "experimental",
+            output_path,
+        ]
         subprocess.run(command, check=True, shell=True)
         self.progress_bar.setValue(100)
 
